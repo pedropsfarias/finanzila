@@ -9,7 +9,8 @@
     "migrate": "node node_modules/pgkit/dist/cli.js migrate",
     "migrate:status": "node node_modules/pgkit/dist/cli.js status",
     "migrate:rollback": "node node_modules/pgkit/dist/cli.js rollback",
-    "seed": "node src/infra/db/seeds/index.js"
+    "seed": "node src/infra/db/seeds/index.js",
+    "test": "node --test"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

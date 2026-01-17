@@ -24,3 +24,9 @@ All AI agents must use Conventional Commits for every commit.
 - Reuse code as much as possible; avoid duplication.
 - Apply SOLID principles where applicable.
 - Prefer clean, readable code over cleverness.
+
+## Tests
+- Use Node's built-in test runner (`node:test`) with `assert/strict`.
+- Place tests under `backend/tests` and mirror the `backend/src` path.
+- Use `.test.js` suffix for all test files.
+- Keep unit tests in `backend/tests/unit` and integration tests in `backend/tests/integration`.
