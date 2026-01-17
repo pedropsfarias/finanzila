@@ -8,7 +8,8 @@
     "start": "node src/index.js",
     "migrate": "pgkit migrate",
     "migrate:status": "pgkit status",
-    "migrate:rollback": "pgkit rollback"
+    "migrate:rollback": "pgkit rollback",
+    "seed": "node src/infra/db/seeds/index.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
