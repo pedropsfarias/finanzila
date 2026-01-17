@@ -5,7 +5,7 @@ const despesasRepository = {
     const query = `
       INSERT INTO despesas (dia, descricao, valor_estimado)
       VALUES ($1, $2, $3)
-      RETURNING id, dia, descricao, valor_estimado AS "valorEstimado";
+      RETURNING id, dia, descricao, valor_estimado AS "valorEstimado", criado_em AS "criadoEm", atualizado_em AS "atualizadoEm";
     `;
 
     const result = await db.query(query, [dia, descricao, valorEstimado]);
@@ -13,7 +13,7 @@ const despesasRepository = {
   },
   list: async () => {
     const query = `
-      SELECT id, dia, descricao, valor_estimado AS "valorEstimado"
+      SELECT id, dia, descricao, valor_estimado AS "valorEstimado", criado_em AS "criadoEm", atualizado_em AS "atualizadoEm"
       FROM despesas
       ORDER BY id DESC;
     `;

@@ -5,7 +5,7 @@ const fluxoCaixaRepository = {
     const query = `
       INSERT INTO fluxo_caixa (data, descricao, valor, parcela, carteira_id)
       VALUES ($1, $2, $3, $4, $5)
-      RETURNING id, data, descricao, valor, parcela, carteira_id AS "carteiraId";
+      RETURNING id, data, descricao, valor, parcela, carteira_id AS "carteiraId", criado_em AS "criadoEm", atualizado_em AS "atualizadoEm";
     `;
 
     const result = await db.query(query, [data, descricao, valor, parcela, carteiraId]);
@@ -13,7 +13,7 @@ const fluxoCaixaRepository = {
   },
   list: async () => {
     const query = `
-      SELECT id, data, descricao, valor, parcela, carteira_id AS "carteiraId"
+      SELECT id, data, descricao, valor, parcela, carteira_id AS "carteiraId", criado_em AS "criadoEm", atualizado_em AS "atualizadoEm"
       FROM fluxo_caixa
       ORDER BY data DESC, id DESC;
     `;

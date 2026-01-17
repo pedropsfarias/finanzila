@@ -1,8 +1,8 @@
 import db from "../../../config/db.js";
-import seedAdminUser from "./admin-user.js";
+import seedUsuarioAdmin from "./usuario-admin.js";
 
 const runSeeds = async () => {
-  await seedAdminUser();
+  await seedUsuarioAdmin();
 };
 
 runSeeds()

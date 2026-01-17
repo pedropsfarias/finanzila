@@ -1,9 +1,9 @@
-const createUser = ({ id, email, name, createdAt, updatedAt }) => ({
+const createUser = ({ id, email, name, criadoEm, atualizadoEm }) => ({
   id,
   email,
   name,
-  createdAt,
-  updatedAt
+  criadoEm,
+  atualizadoEm
 });
 
 export default createUser;

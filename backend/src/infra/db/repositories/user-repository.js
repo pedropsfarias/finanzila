@@ -3,9 +3,9 @@ import db from "../../../config/db.js";
 const userRepository = {
   create: async ({ email, name, passwordHash }) => {
     const query = `
-      INSERT INTO users (email, name, password_hash)
+      INSERT INTO usuarios (email, nome, senha_hash)
       VALUES ($1, $2, $3)
-      RETURNING id, email, name, created_at AS "createdAt", updated_at AS "updatedAt";
+      RETURNING id, email, nome AS "name", criado_em AS "criadoEm", atualizado_em AS "atualizadoEm";
     `;
 
     const result = await db.query(query, [email, name, passwordHash]);
@@ -13,8 +13,8 @@ const userRepository = {
   },
   list: async () => {
     const query = `
-      SELECT id, email, name, created_at AS "createdAt", updated_at AS "updatedAt"
-      FROM users
+      SELECT id, email, nome AS "name", criado_em AS "criadoEm", atualizado_em AS "atualizadoEm"
+      FROM usuarios
       ORDER BY id DESC;
     `;
 
@@ -23,8 +23,8 @@ const userRepository = {
   },
   findById: async (id) => {
     const query = `
-      SELECT id, email, name, created_at AS "createdAt", updated_at AS "updatedAt"
-      FROM users
+      SELECT id, email, nome AS "name", criado_em AS "criadoEm", atualizado_em AS "atualizadoEm"
+      FROM usuarios
       WHERE id = $1;
     `;
 
@@ -33,8 +33,8 @@ const userRepository = {
   },
   findByEmail: async (email) => {
     const query = `
-      SELECT id, email, name, password_hash AS "passwordHash", created_at AS "createdAt", updated_at AS "updatedAt"
-      FROM users
+      SELECT id, email, nome AS "name", senha_hash AS "passwordHash", criado_em AS "criadoEm", atualizado_em AS "atualizadoEm"
+      FROM usuarios
       WHERE email = $1;
     `;
 
@@ -43,13 +43,13 @@ const userRepository = {
   },
   update: async ({ id, email, name, passwordHash }) => {
     const query = `
-      UPDATE users
+      UPDATE usuarios
       SET email = $1,
-          name = $2,
-          password_hash = COALESCE($3, password_hash),
-          updated_at = now()
+          nome = $2,
+          senha_hash = COALESCE($3, senha_hash),
+          atualizado_em = now()
       WHERE id = $4
-      RETURNING id, email, name, created_at AS "createdAt", updated_at AS "updatedAt";
+      RETURNING id, email, nome AS "name", criado_em AS "criadoEm", atualizado_em AS "atualizadoEm";
     `;
 
     const result = await db.query(query, [email, name, passwordHash, id]);
@@ -57,7 +57,7 @@ const userRepository = {
   },
   remove: async (id) => {
     const query = `
-      DELETE FROM users
+      DELETE FROM usuarios
       WHERE id = $1
       RETURNING id;
     `;

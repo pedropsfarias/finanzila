@@ -3,6 +3,8 @@ CREATE TABLE IF NOT EXISTS despesas (
   dia integer NOT NULL,
   descricao text NOT NULL,
   valor_estimado numeric NOT NULL,
+  criado_em timestamptz NOT NULL DEFAULT now(),
+  atualizado_em timestamptz NOT NULL DEFAULT now(),
   CONSTRAINT despesas_dia_check CHECK (dia BETWEEN 1 AND 31)
 );
 
@@ -11,6 +13,8 @@ CREATE TABLE IF NOT EXISTS carteiras (
   nome text NOT NULL,
   dia_fechamento integer NOT NULL,
   dia_pagamento integer NOT NULL,
+  criado_em timestamptz NOT NULL DEFAULT now(),
+  atualizado_em timestamptz NOT NULL DEFAULT now(),
   CONSTRAINT carteiras_dia_fechamento_check CHECK (dia_fechamento BETWEEN 1 AND 31),
   CONSTRAINT carteiras_dia_pagamento_check CHECK (dia_pagamento BETWEEN 1 AND 31)
 );
@@ -22,6 +26,8 @@ CREATE TABLE IF NOT EXISTS fluxo_caixa (
   valor numeric NOT NULL,
   parcela text,
   carteira_id integer NOT NULL,
+  criado_em timestamptz NOT NULL DEFAULT now(),
+  atualizado_em timestamptz NOT NULL DEFAULT now(),
   CONSTRAINT fluxo_caixa_carteira_fk FOREIGN KEY (carteira_id)
     REFERENCES carteiras(id) ON DELETE RESTRICT
 );

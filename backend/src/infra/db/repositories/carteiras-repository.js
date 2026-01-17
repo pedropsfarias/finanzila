@@ -5,7 +5,7 @@ const carteirasRepository = {
     const query = `
       INSERT INTO carteiras (nome, dia_fechamento, dia_pagamento)
       VALUES ($1, $2, $3)
-      RETURNING id, nome, dia_fechamento AS "diaFechamento", dia_pagamento AS "diaPagamento";
+      RETURNING id, nome, dia_fechamento AS "diaFechamento", dia_pagamento AS "diaPagamento", criado_em AS "criadoEm", atualizado_em AS "atualizadoEm";
     `;
 
     const result = await db.query(query, [nome, diaFechamento, diaPagamento]);
@@ -13,7 +13,7 @@ const carteirasRepository = {
   },
   list: async () => {
     const query = `
-      SELECT id, nome, dia_fechamento AS "diaFechamento", dia_pagamento AS "diaPagamento"
+      SELECT id, nome, dia_fechamento AS "diaFechamento", dia_pagamento AS "diaPagamento", criado_em AS "criadoEm", atualizado_em AS "atualizadoEm"
       FROM carteiras
       ORDER BY id DESC;
     `;
