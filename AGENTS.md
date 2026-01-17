@@ -19,3 +19,4 @@ All AI agents must use Conventional Commits for every commit.
 - One commit = one logical change.
 - Do not include unrelated changes in the same commit.
 - Reference issues only if they exist (e.g. `Refs #123`).
+- Always write commits in English.
