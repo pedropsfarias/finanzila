@@ -1,5 +1,0 @@
-ALTER TABLE users
-  ADD COLUMN IF NOT EXISTS password_hash text NOT NULL DEFAULT '';
-
-ALTER TABLE users
-  ALTER COLUMN password_hash DROP DEFAULT;
