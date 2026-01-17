@@ -30,3 +30,10 @@ All AI agents must use Conventional Commits for every commit.
 - Place tests under `backend/tests` and mirror the `backend/src` path.
 - Use `.test.js` suffix for all test files.
 - Keep unit tests in `backend/tests/unit` and integration tests in `backend/tests/integration`.
+
+## Decisions
+- Frontend uses Vue 3 + PrimeVue with `lara-light-blue` theme and inline styling to avoid new classes.
+- Frontend follows a clean architecture split: `application` usecases, `infra` repositories/http, `presentation` views/layouts.
+- Auth stores `token` and `expiresAt` in `localStorage`; router guards redirect to `/login` when missing/expired.
+- Backend issues JWTs with 1h expiry and returns `expiresAt` in the login response.
+- Backend adds a simple CORS middleware with configurable `CORS_ORIGIN`.

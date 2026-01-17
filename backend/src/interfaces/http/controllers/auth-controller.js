@@ -40,13 +40,15 @@ const authController = {
         return res.status(401).json({ message: "invalid credentials" });
       }
 
+      const expiresInSeconds = 60 * 60;
       const token = jwt.sign(
         { sub: user.id, email: user.email, name: user.name },
         env.jwtSecret,
-        { expiresIn: "1d" }
+        { expiresIn: expiresInSeconds }
       );
+      const expiresAt = Date.now() + expiresInSeconds * 1000;
 
-      return res.status(200).json({ token });
+      return res.status(200).json({ token, expiresAt });
     } catch (error) {
       return next(error);
     }
