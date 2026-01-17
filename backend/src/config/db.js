@@ -1,12 +1,10 @@
-import { createPool } from "pgkit";
+import { createPool } from "pgkit/client";
 import env from "./env.js";
 
-const pool = createPool({
-  connectionString: env.databaseUrl
-});
+const pool = createPool(env.databaseUrl);
 
 const db = {
-  query: (text, params) => pool.query(text, params),
+  query: (text, params) => pool.query(pool.sql.raw(text, params ?? [])),
   close: () => pool.end()
 };
 

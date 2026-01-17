@@ -6,13 +6,14 @@
   "scripts": {
     "dev": "node --watch src/index.js",
     "start": "node src/index.js",
-    "migrate": "pgkit migrate",
-    "migrate:status": "pgkit status",
-    "migrate:rollback": "pgkit rollback",
+    "migrate": "node node_modules/pgkit/dist/cli.js migrate",
+    "migrate:status": "node node_modules/pgkit/dist/cli.js status",
+    "migrate:rollback": "node node_modules/pgkit/dist/cli.js rollback",
     "seed": "node src/infra/db/seeds/index.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
+    "dotenv": "^16.4.5",
     "express": "^4.19.2",
     "jsonwebtoken": "^9.0.2",
     "pgkit": "^0.6.1"
