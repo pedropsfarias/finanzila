@@ -20,3 +20,7 @@ All AI agents must use Conventional Commits for every commit.
 - Do not include unrelated changes in the same commit.
 - Reference issues only if they exist (e.g. `Refs #123`).
 - Always write commits in English.
+- Follow clean architecture boundaries.
+- Reuse code as much as possible; avoid duplication.
+- Apply SOLID principles where applicable.
+- Prefer clean, readable code over cleverness.
