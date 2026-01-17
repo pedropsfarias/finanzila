@@ -8,7 +8,7 @@
     </Message>
     <div :style="{ display: 'grid', gap: '0.6rem' }">
       <span :style="{ fontWeight: '600' }">E-mail</span>
-      <InputText v-model="email" type="email" placeholder="voce@finanzila.com" required />
+      <InputText v-model="email" placeholder="voce@finanzila.com" required />
     </div>
     <div :style="{ display: 'grid', gap: '0.6rem' }">
       <span :style="{ fontWeight: '600' }">Senha</span>

@@ -27,7 +27,7 @@
       </template>
     </Toolbar>
     <div :style="{ padding: '0 1rem 1.5rem', display: 'grid', gap: '1rem' }">
-      <TabMenu :model="items" />
+      <TabMenu :model="items" :activeIndex="activeIndex" @tab-change="handleTabChange" />
       <Card :style="{ borderRadius: '20px' }">
         <template #content>
           <RouterView />
@@ -38,8 +38,8 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
-import { useRouter } from "vue-router";
+import { computed, ref } from "vue";
+import { useRoute, useRouter } from "vue-router";
 import Toolbar from "primevue/toolbar";
 import Button from "primevue/button";
 import TabMenu from "primevue/tabmenu";
@@ -48,6 +48,7 @@ import Toast from "primevue/toast";
 import { authService } from "../../infra/http/auth-service.js";
 
 const router = useRouter();
+const route = useRoute();
 
 const items = ref([
   { label: "Carteiras", icon: "pi pi-wallet", to: "/carteiras" },
@@ -55,6 +56,18 @@ const items = ref([
   { label: "Fluxo", icon: "pi pi-chart-line", to: "/fluxo-caixa" },
   { label: "Usuarios", icon: "pi pi-users", to: "/usuarios" }
 ]);
+
+const activeIndex = computed(() => {
+  const index = items.value.findIndex((item) => item.to === route.path);
+  return index === -1 ? 0 : index;
+});
+
+const handleTabChange = ({ index }) => {
+  const item = items.value[index];
+  if (item?.to) {
+    router.push(item.to);
+  }
+};
 
 const handleLogout = () => {
   authService.logout();
