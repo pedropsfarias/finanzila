@@ -19,14 +19,34 @@
       :loading="loading"
       :emptyMessage="'Nenhum lancamento encontrado.'"
     >
-      <Column header="Data" :body="formatDate" />
+      <Column field="data" header="Data">
+        <template #body="{ data }">
+          {{ formatDate(data?.data) }}
+        </template>
+      </Column>
       <Column field="descricao" header="Descricao" />
-      <Column header="Carteira" :body="formatCarteira" />
+      <Column field="carteiraId" header="Carteira">
+        <template #body="{ data }">
+          {{ formatCarteira(data) }}
+        </template>
+      </Column>
       <Column field="parcela" header="Parcela" />
-      <Column field="valor" header="Valor" />
+      <Column field="valor" header="Valor">
+        <template #body="{ data }">
+          {{ formatValor(data) }}
+        </template>
+      </Column>
+      <Column header="Acoes">
+        <template #body="{ data }">
+          <div :style="{ display: 'flex', gap: '0.5rem' }">
+            <Button icon="pi pi-pencil" size="small" text @click="openEditDialog(data)" />
+            <Button icon="pi pi-trash" size="small" text severity="danger" @click="confirmRemove(data)" />
+          </div>
+        </template>
+      </Column>
     </DataTable>
 
-    <Dialog v-model:visible="dialogVisible" modal header="Novo lancamento" :style="{ width: '100%', maxWidth: '40rem' }">
+    <Dialog v-model:visible="dialogVisible" modal :header="dialogTitle" :style="{ width: '100%', maxWidth: '40rem' }">
       <div :style="{ display: 'grid', gap: '1rem' }">
         <div :style="{ display: 'grid', gap: '0.5rem' }">
           <span>Data</span>
@@ -101,7 +121,7 @@
 </template>
 
 <script setup>
-import { onMounted, reactive, ref } from "vue";
+import { computed, onMounted, reactive, ref } from "vue";
 import { useToast } from "primevue/usetoast";
 import DataTable from "primevue/datatable";
 import Column from "primevue/column";
@@ -113,6 +133,8 @@ import Calendar from "primevue/calendar";
 import Dropdown from "primevue/dropdown";
 import { listFluxoCaixa } from "../../application/usecases/list-fluxo-caixa.js";
 import { createFluxoCaixa } from "../../application/usecases/create-fluxo-caixa.js";
+import { updateFluxoCaixa } from "../../application/usecases/update-fluxo-caixa.js";
+import { deleteFluxoCaixa } from "../../application/usecases/delete-fluxo-caixa.js";
 import { importFluxoCaixa } from "../../application/usecases/import-fluxo-caixa.js";
 import { listCarteiras } from "../../application/usecases/list-carteiras.js";
 import { fluxoCaixaRepository } from "../../infra/repositories/fluxo-caixa-repository.js";
@@ -124,6 +146,7 @@ const carteiras = ref([]);
 const loading = ref(false);
 const saving = ref(false);
 const dialogVisible = ref(false);
+const editingId = ref(null);
 const importDialogVisible = ref(false);
 const importing = ref(false);
 const importFile = ref(null);
@@ -135,6 +158,8 @@ const form = reactive({
   parcela: "",
   carteiraId: null
 });
+
+const dialogTitle = computed(() => (editingId.value ? "Editar lancamento" : "Novo lancamento"));
 
 const fetchFluxos = async () => {
   loading.value = true;
@@ -158,7 +183,37 @@ const resetForm = () => {
 };
 
 const openDialog = () => {
+  editingId.value = null;
   resetForm();
+  dialogVisible.value = true;
+};
+
+const parseFormDate = (value) => {
+  if (!value) {
+    return null;
+  }
+  if (value instanceof Date) {
+    return value;
+  }
+  if (typeof value === "string") {
+    if (value.includes("T")) {
+      return new Date(value);
+    }
+    if (/^\d{2}\/\d{2}\/\d{4}$/.test(value)) {
+      const [day, month, year] = value.split("/");
+      return new Date(`${year}-${month}-${day}T00:00:00`);
+    }
+  }
+  return new Date(`${value}T00:00:00`);
+};
+
+const openEditDialog = (row) => {
+  editingId.value = row.id;
+  form.data = parseFormDate(row.data);
+  form.descricao = row.descricao;
+  form.valor = typeof row.valor === "string" ? Number(row.valor) : row.valor;
+  form.parcela = row.parcela ?? "";
+  form.carteiraId = row.carteiraId;
   dialogVisible.value = true;
 };
 
@@ -180,16 +235,57 @@ const readFileAsBase64 = (file) =>
     reader.readAsDataURL(file);
   });
 
-const formatDate = (row) => {
-  if (!row.data) {
+const formatDate = (value) => {
+  if (!value) {
     return "";
   }
-  return new Date(row.data).toLocaleDateString("pt-BR");
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    if (/^\d{2}\/\d{2}\/\d{4}$/.test(trimmed)) {
+      return trimmed;
+    }
+    const isoMatch = trimmed.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (isoMatch) {
+      return `${isoMatch[3]}/${isoMatch[2]}/${isoMatch[1]}`;
+    }
+  }
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) {
+    return "";
+  }
+  const day = String(parsed.getDate()).padStart(2, "0");
+  const month = String(parsed.getMonth() + 1).padStart(2, "0");
+  const year = String(parsed.getFullYear());
+  return `${day}/${month}/${year}`;
 };
 
 const formatCarteira = (row) => {
+  if (!row) {
+    return "-";
+  }
   const carteira = carteiras.value.find((item) => item.id === row.carteiraId);
-  return carteira ? carteira.nome : row.carteiraId;
+  return carteira ? carteira.nome : row.carteiraId ?? "-";
+};
+
+const formatValor = (row) => {
+  if (row.valor === null || row.valor === undefined) {
+    return "-";
+  }
+  let value = row.valor;
+  if (typeof value === "string") {
+    const cleaned = value.replace(/[R$\s]/g, "");
+    if (cleaned.includes(",")) {
+      value = cleaned.replace(/\./g, "").replace(",", ".");
+    } else {
+      value = cleaned;
+    }
+  }
+  const numeric = Number(value);
+  if (Number.isNaN(numeric)) {
+    return "-";
+  }
+  const formatted = numeric.toFixed(2).replace(".", ",");
+  return `R$${formatted}`;
 };
 
 const submit = async () => {
@@ -202,14 +298,36 @@ const submit = async () => {
       parcela: form.parcela || null,
       carteiraId: form.carteiraId
     };
-    const fluxo = await createFluxoCaixa({ fluxoCaixaRepository }, payload);
-    fluxos.value = [fluxo, ...fluxos.value];
+    if (editingId.value) {
+      const fluxo = await updateFluxoCaixa(
+        { fluxoCaixaRepository },
+        { id: editingId.value, ...payload }
+      );
+      fluxos.value = fluxos.value.map((item) => (item.id === fluxo.id ? fluxo : item));
+      toast.add({ severity: "success", summary: "Lancamento atualizado", life: 2500 });
+    } else {
+      const fluxo = await createFluxoCaixa({ fluxoCaixaRepository }, payload);
+      fluxos.value = [fluxo, ...fluxos.value];
+      toast.add({ severity: "success", summary: "Lancamento criado", life: 2500 });
+    }
     dialogVisible.value = false;
-    toast.add({ severity: "success", summary: "Lancamento criado", life: 2500 });
   } catch (err) {
     toast.add({ severity: "error", summary: err.message ?? "Falha ao salvar.", life: 2500 });
   } finally {
     saving.value = false;
+  }
+};
+
+const confirmRemove = async (row) => {
+  if (!window.confirm("Deseja excluir este lancamento?")) {
+    return;
+  }
+  try {
+    await deleteFluxoCaixa({ fluxoCaixaRepository }, row.id);
+    fluxos.value = fluxos.value.filter((item) => item.id !== row.id);
+    toast.add({ severity: "success", summary: "Lancamento excluido", life: 2500 });
+  } catch (err) {
+    toast.add({ severity: "error", summary: err.message ?? "Falha ao excluir.", life: 2500 });
   }
 };
 

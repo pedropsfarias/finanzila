@@ -35,6 +35,32 @@ const fluxoCaixaRepository = {
 
     const result = await db.query(query);
     return result.rows;
+  },
+  update: async ({ id, data, descricao, valor, parcela, carteiraId }) => {
+    const query = `
+      UPDATE fluxo_caixa
+      SET data = $1,
+          descricao = $2,
+          valor = $3,
+          parcela = $4,
+          carteira_id = $5,
+          atualizado_em = now()
+      WHERE id = $6
+      RETURNING id, data, descricao, valor, parcela, carteira_id AS "carteiraId", criado_em AS "criadoEm", atualizado_em AS "atualizadoEm";
+    `;
+
+    const result = await db.query(query, [data, descricao, valor, parcela, carteiraId, id]);
+    return result.rows[0] ?? null;
+  },
+  remove: async (id) => {
+    const query = `
+      DELETE FROM fluxo_caixa
+      WHERE id = $1
+      RETURNING id;
+    `;
+
+    const result = await db.query(query, [id]);
+    return result.rows[0] ?? null;
   }
 };
 

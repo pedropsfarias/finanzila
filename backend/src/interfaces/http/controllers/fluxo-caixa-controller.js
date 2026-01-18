@@ -3,7 +3,9 @@ import { promises as fs } from "node:fs";
 import path from "node:path";
 import os from "node:os";
 import createFluxoCaixaUseCase from "../../../application/usecases/create-fluxo-caixa.js";
+import updateFluxoCaixaUseCase from "../../../application/usecases/update-fluxo-caixa.js";
 import listFluxoCaixaUseCase from "../../../application/usecases/list-fluxo-caixa.js";
+import deleteFluxoCaixaUseCase from "../../../application/usecases/delete-fluxo-caixa.js";
 import importFluxoCaixaUseCase from "../../../application/usecases/import-fluxo-caixa.js";
 import parseFluxoCaixaXlsx from "../../../infra/importers/fluxo-caixa-xlsx.js";
 import fluxoCaixaRepository from "../../../infra/db/repositories/fluxo-caixa-repository.js";
@@ -32,6 +34,42 @@ const fluxoCaixaController = {
     try {
       const fluxos = await listFluxoCaixaUseCase({ fluxoCaixaRepository });
       res.status(200).json(fluxos);
+    } catch (error) {
+      next(error);
+    }
+  },
+  update: async (req, res, next) => {
+    try {
+      const fluxo = await updateFluxoCaixaUseCase(
+        { fluxoCaixaRepository },
+        {
+          id: Number(req.params.id),
+          data: req.body.data,
+          descricao: req.body.descricao,
+          valor: req.body.valor,
+          parcela: req.body.parcela ?? null,
+          carteiraId: Number(req.body.carteiraId)
+        }
+      );
+
+      if (!fluxo) {
+        return res.status(404).json({ message: "fluxo not found" });
+      }
+
+      res.status(200).json(fluxo);
+    } catch (error) {
+      next(error);
+    }
+  },
+  remove: async (req, res, next) => {
+    try {
+      const removed = await deleteFluxoCaixaUseCase({ fluxoCaixaRepository }, Number(req.params.id));
+
+      if (!removed) {
+        return res.status(404).json({ message: "fluxo not found" });
+      }
+
+      res.status(204).send();
     } catch (error) {
       next(error);
     }

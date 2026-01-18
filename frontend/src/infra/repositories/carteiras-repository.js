@@ -9,5 +9,16 @@ export const carteirasRepository = {
       method: "POST",
       body: JSON.stringify(payload)
     });
+  },
+  update(id, payload) {
+    return apiClient.request(`/carteiras/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(payload)
+    });
+  },
+  remove(id) {
+    return apiClient.request(`/carteiras/${id}`, {
+      method: "DELETE"
+    });
   }
 };

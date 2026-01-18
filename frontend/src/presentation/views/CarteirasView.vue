@@ -20,9 +20,17 @@
       <Column header="Aliases" :body="formatAliases" />
       <Column field="diaFechamento" header="Fechamento" />
       <Column field="diaPagamento" header="Pagamento" />
+      <Column header="Acoes">
+        <template #body="{ data }">
+          <div :style="{ display: 'flex', gap: '0.5rem' }">
+            <Button icon="pi pi-pencil" size="small" text @click="openEditDialog(data)" />
+            <Button icon="pi pi-trash" size="small" text severity="danger" @click="confirmRemove(data)" />
+          </div>
+        </template>
+      </Column>
     </DataTable>
 
-    <Dialog v-model:visible="dialogVisible" modal header="Nova carteira" :style="{ width: '100%', maxWidth: '38.33rem' }">
+    <Dialog v-model:visible="dialogVisible" modal :header="dialogTitle" :style="{ width: '100%', maxWidth: '38.33rem' }">
       <div :style="{ display: 'grid', gap: '1rem' }">
         <div :style="{ display: 'grid', gap: '0.5rem' }">
           <span>Nome</span>
@@ -50,7 +58,7 @@
 </template>
 
 <script setup>
-import { onMounted, reactive, ref } from "vue";
+import { computed, onMounted, reactive, ref } from "vue";
 import { useToast } from "primevue/usetoast";
 import DataTable from "primevue/datatable";
 import Column from "primevue/column";
@@ -60,6 +68,8 @@ import InputText from "primevue/inputtext";
 import InputNumber from "primevue/inputnumber";
 import { listCarteiras } from "../../application/usecases/list-carteiras.js";
 import { createCarteira } from "../../application/usecases/create-carteira.js";
+import { updateCarteira } from "../../application/usecases/update-carteira.js";
+import { deleteCarteira } from "../../application/usecases/delete-carteira.js";
 import { carteirasRepository } from "../../infra/repositories/carteiras-repository.js";
 
 const toast = useToast();
@@ -67,12 +77,15 @@ const carteiras = ref([]);
 const loading = ref(false);
 const saving = ref(false);
 const dialogVisible = ref(false);
+const editingId = ref(null);
 const form = reactive({
   nome: "",
   aliases: "",
   diaFechamento: 1,
   diaPagamento: 1
 });
+
+const dialogTitle = computed(() => (editingId.value ? "Editar carteira" : "Nova carteira"));
 
 const fetchCarteiras = async () => {
   loading.value = true;
@@ -91,27 +104,66 @@ const resetForm = () => {
 };
 
 const openDialog = () => {
+  editingId.value = null;
   resetForm();
   dialogVisible.value = true;
 };
 
+const openEditDialog = (row) => {
+  editingId.value = row.id;
+  form.nome = row.nome;
+  form.aliases = row.aliases?.length ? row.aliases.join(", ") : "";
+  form.diaFechamento = row.diaFechamento;
+  form.diaPagamento = row.diaPagamento;
+  dialogVisible.value = true;
+};
+
+const normalizeAliases = (aliases) =>
+  aliases
+    .split(",")
+    .map((alias) => alias.trim())
+    .filter(Boolean);
+
 const submit = async () => {
   saving.value = true;
   try {
-    const carteira = await createCarteira({ carteirasRepository }, {
-      ...form,
-      aliases: form.aliases
-        .split(",")
-        .map((alias) => alias.trim())
-        .filter(Boolean)
-    });
-    carteiras.value = [carteira, ...carteiras.value];
+    if (editingId.value) {
+      const carteira = await updateCarteira(
+        { carteirasRepository },
+        {
+          id: editingId.value,
+          ...form,
+          aliases: normalizeAliases(form.aliases)
+        }
+      );
+      carteiras.value = carteiras.value.map((item) => (item.id === carteira.id ? carteira : item));
+      toast.add({ severity: "success", summary: "Carteira atualizada", life: 2500 });
+    } else {
+      const carteira = await createCarteira({ carteirasRepository }, {
+        ...form,
+        aliases: normalizeAliases(form.aliases)
+      });
+      carteiras.value = [carteira, ...carteiras.value];
+      toast.add({ severity: "success", summary: "Carteira criada", life: 2500 });
+    }
     dialogVisible.value = false;
-    toast.add({ severity: "success", summary: "Carteira criada", life: 2500 });
   } catch (err) {
     toast.add({ severity: "error", summary: err.message ?? "Falha ao salvar.", life: 2500 });
   } finally {
     saving.value = false;
+  }
+};
+
+const confirmRemove = async (row) => {
+  if (!window.confirm("Deseja excluir esta carteira?")) {
+    return;
+  }
+  try {
+    await deleteCarteira({ carteirasRepository }, row.id);
+    carteiras.value = carteiras.value.filter((item) => item.id !== row.id);
+    toast.add({ severity: "success", summary: "Carteira excluida", life: 2500 });
+  } catch (err) {
+    toast.add({ severity: "error", summary: err.message ?? "Falha ao excluir.", life: 2500 });
   }
 };
 
