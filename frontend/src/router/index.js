@@ -7,6 +7,7 @@ import UsersView from "../presentation/views/UsersView.vue";
 import CarteirasView from "../presentation/views/CarteirasView.vue";
 import DespesasView from "../presentation/views/DespesasView.vue";
 import FluxoCaixaView from "../presentation/views/FluxoCaixaView.vue";
+import FluxoConsolidadoView from "../presentation/views/FluxoConsolidadoView.vue";
 
 const router = createRouter({
   history: createWebHistory(),
@@ -25,6 +26,7 @@ const router = createRouter({
         { path: "carteiras", name: "carteiras", component: CarteirasView },
         { path: "despesas", name: "despesas", component: DespesasView },
         { path: "fluxo-caixa", name: "fluxoCaixa", component: FluxoCaixaView },
+        { path: "fluxo-consolidado", name: "fluxoConsolidado", component: FluxoConsolidadoView },
         { path: "usuarios", name: "usuarios", component: UsersView }
       ]
     }

@@ -55,6 +55,7 @@ const items = ref([
   { label: "Carteiras", icon: "pi pi-wallet", to: "/carteiras" },
   { label: "Despesas", icon: "pi pi-calendar", to: "/despesas" },
   { label: "Fluxo", icon: "pi pi-chart-line", to: "/fluxo-caixa" },
+  { label: "Consolidado", icon: "pi pi-chart-bar", to: "/fluxo-consolidado" },
   { label: "Usuarios", icon: "pi pi-users", to: "/usuarios" }
 ]);
 

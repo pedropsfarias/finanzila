@@ -3,6 +3,7 @@ import healthController from "../controllers/health-controller.js";
 import despesasRoutes from "./despesas-routes.js";
 import carteirasRoutes from "./carteiras-routes.js";
 import fluxoCaixaRoutes from "./fluxo-caixa-routes.js";
+import fluxoConsolidadoRoutes from "./fluxo-consolidado-routes.js";
 import usersRoutes from "./users-routes.js";
 import authRoutes from "./auth-routes.js";
 import authMiddleware from "../middleware/auth.js";
@@ -16,5 +17,6 @@ router.use(usersRoutes);
 router.use(despesasRoutes);
 router.use(carteirasRoutes);
 router.use(fluxoCaixaRoutes);
+router.use(fluxoConsolidadoRoutes);
 
 export default router;
