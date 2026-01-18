@@ -11,6 +11,21 @@ const fluxoCaixaRepository = {
     const result = await db.query(query, [data, descricao, valor, parcela, carteiraId]);
     return result.rows[0];
   },
+  findExisting: async ({ data, descricao, valor, parcela, carteiraId }) => {
+    const query = `
+      SELECT id
+      FROM fluxo_caixa
+      WHERE data = $1
+        AND descricao = $2
+        AND valor = $3
+        AND carteira_id = $4
+        AND parcela IS NOT DISTINCT FROM $5
+      LIMIT 1;
+    `;
+
+    const result = await db.query(query, [data, descricao, valor, carteiraId, parcela]);
+    return result.rows[0] ?? null;
+  },
   list: async () => {
     const query = `
       SELECT id, data, descricao, valor, parcela, carteira_id AS "carteiraId", criado_em AS "criadoEm", atualizado_em AS "atualizadoEm"

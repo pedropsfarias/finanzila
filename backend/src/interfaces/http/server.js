@@ -16,7 +16,7 @@ app.use((req, res, next) => {
   return next();
 });
 
-app.use(express.json());
+app.use(express.json({ limit: "15mb" }));
 app.use(routes);
 app.use((err, _req, res, _next) => {
   console.error(err);

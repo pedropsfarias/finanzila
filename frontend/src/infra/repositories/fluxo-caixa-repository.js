@@ -9,5 +9,11 @@ export const fluxoCaixaRepository = {
       method: "POST",
       body: JSON.stringify(payload)
     });
+  },
+  importFromXlsx(payload) {
+    return apiClient.request("/fluxo-caixa/import", {
+      method: "POST",
+      body: JSON.stringify(payload)
+    });
   }
 };

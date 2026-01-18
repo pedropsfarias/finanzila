@@ -7,7 +7,10 @@
           Registre entradas e saidas por carteira.
         </p>
       </div>
-      <Button label="Novo lancamento" icon="pi pi-plus" size="small" @click="openDialog" />
+      <div :style="{ display: 'flex', gap: '0.5rem' }">
+        <Button label="Importar xlsx" icon="pi pi-upload" size="small" severity="secondary" @click="openImportDialog" />
+        <Button label="Novo lancamento" icon="pi pi-plus" size="small" @click="openDialog" />
+      </div>
     </div>
 
     <DataTable
@@ -57,6 +60,43 @@
         </div>
       </div>
     </Dialog>
+
+    <Dialog
+      v-model:visible="importDialogVisible"
+      modal
+      header="Importar fluxo de caixa"
+      :style="{ width: '100%', maxWidth: '36rem' }"
+    >
+      <div :style="{ display: 'grid', gap: '1rem' }">
+        <div :style="{ display: 'grid', gap: '0.5rem' }">
+          <span>Arquivo (.xlsx)</span>
+          <input type="file" accept=".xlsx" @change="handleFileChange" />
+          <small v-if="importFile" :style="{ color: 'var(--text-color-secondary)' }">
+            Selecionado: {{ importFile.name }}
+          </small>
+        </div>
+        <div v-if="importSummary" :style="{ display: 'grid', gap: '0.35rem' }">
+          <strong>Resumo</strong>
+          <span>Registros: {{ importSummary.totalRegistros }}</span>
+          <span>Importados: {{ importSummary.importados }}</span>
+          <span>Carteiras criadas: {{ importSummary.carteirasCriadas }}</span>
+          <span>Repetidos: {{ importSummary.repetidos?.length ?? 0 }}</span>
+          <span>Ignorados: {{ importSummary.ignorados?.length ?? 0 }}</span>
+          <div v-if="importSummary.repetidos?.length" :style="{ marginTop: '0.5rem' }">
+            <strong>Repetidos (primeiros 10)</strong>
+            <ul :style="{ paddingLeft: '1rem', margin: '0.25rem 0 0' }">
+              <li v-for="item in importSummary.repetidos.slice(0, 10)" :key="item.linha">
+                {{ item.data }} | {{ item.descricao }} | {{ item.conta || item.cartaoCredito || '-' }} | {{ item.valor }}
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div :style="{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }">
+          <Button label="Fechar" text severity="secondary" size="small" @click="importDialogVisible = false" />
+          <Button label="Importar" icon="pi pi-upload" size="small" :loading="importing" @click="submitImport" />
+        </div>
+      </div>
+    </Dialog>
   </div>
 </template>
 
@@ -73,6 +113,7 @@ import Calendar from "primevue/calendar";
 import Dropdown from "primevue/dropdown";
 import { listFluxoCaixa } from "../../application/usecases/list-fluxo-caixa.js";
 import { createFluxoCaixa } from "../../application/usecases/create-fluxo-caixa.js";
+import { importFluxoCaixa } from "../../application/usecases/import-fluxo-caixa.js";
 import { listCarteiras } from "../../application/usecases/list-carteiras.js";
 import { fluxoCaixaRepository } from "../../infra/repositories/fluxo-caixa-repository.js";
 import { carteirasRepository } from "../../infra/repositories/carteiras-repository.js";
@@ -83,6 +124,10 @@ const carteiras = ref([]);
 const loading = ref(false);
 const saving = ref(false);
 const dialogVisible = ref(false);
+const importDialogVisible = ref(false);
+const importing = ref(false);
+const importFile = ref(null);
+const importSummary = ref(null);
 const form = reactive({
   data: null,
   descricao: "",
@@ -117,6 +162,24 @@ const openDialog = () => {
   dialogVisible.value = true;
 };
 
+const openImportDialog = () => {
+  importFile.value = null;
+  importSummary.value = null;
+  importDialogVisible.value = true;
+};
+
+const handleFileChange = (event) => {
+  importFile.value = event.target.files?.[0] ?? null;
+};
+
+const readFileAsBase64 = (file) =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(new Error("Falha ao ler o arquivo."));
+    reader.readAsDataURL(file);
+  });
+
 const formatDate = (row) => {
   if (!row.data) {
     return "";
@@ -147,6 +210,27 @@ const submit = async () => {
     toast.add({ severity: "error", summary: err.message ?? "Falha ao salvar.", life: 2500 });
   } finally {
     saving.value = false;
+  }
+};
+
+const submitImport = async () => {
+  if (!importFile.value) {
+    toast.add({ severity: "error", summary: "Selecione um arquivo .xlsx.", life: 2500 });
+    return;
+  }
+  importing.value = true;
+  try {
+    const contentBase64 = await readFileAsBase64(importFile.value);
+    importSummary.value = await importFluxoCaixa({ fluxoCaixaRepository }, {
+      fileName: importFile.value.name,
+      contentBase64
+    });
+    await fetchFluxos();
+    toast.add({ severity: "success", summary: "Importacao concluida", life: 2500 });
+  } catch (err) {
+    toast.add({ severity: "error", summary: err.message ?? "Falha ao importar.", life: 2500 });
+  } finally {
+    importing.value = false;
   }
 };
 

@@ -10,6 +10,7 @@
     "migrate:status": "node node_modules/pgkit/dist/cli.js status",
     "migrate:rollback": "node node_modules/pgkit/dist/cli.js rollback",
     "seed": "node src/infra/db/seeds/index.js",
+    "import:fluxo-caixa": "node src/infra/scripts/import-fluxo-caixa.js",
     "test": "node --test"
   },
   "dependencies": {
@@ -17,6 +18,7 @@
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
     "jsonwebtoken": "^9.0.2",
-    "pgkit": "^0.6.1"
+    "pgkit": "^0.6.1",
+    "xlsx": "^0.18.5"
   }
 }
