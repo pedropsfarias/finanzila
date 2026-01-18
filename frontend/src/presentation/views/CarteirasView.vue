@@ -17,6 +17,7 @@
       :emptyMessage="'Nenhuma carteira cadastrada.'"
     >
       <Column field="nome" header="Nome" />
+      <Column header="Aliases" :body="formatAliases" />
       <Column field="diaFechamento" header="Fechamento" />
       <Column field="diaPagamento" header="Pagamento" />
     </DataTable>
@@ -26,6 +27,10 @@
         <div :style="{ display: 'grid', gap: '0.5rem' }">
           <span>Nome</span>
           <InputText v-model="form.nome" placeholder="Cartao principal" />
+        </div>
+        <div :style="{ display: 'grid', gap: '0.5rem' }">
+          <span>Aliases</span>
+          <InputText v-model="form.aliases" placeholder="Cartao pessoal, Nubank" />
         </div>
         <div :style="{ display: 'grid', gap: '0.5rem' }">
           <span>Dia de fechamento</span>
@@ -64,6 +69,7 @@ const saving = ref(false);
 const dialogVisible = ref(false);
 const form = reactive({
   nome: "",
+  aliases: "",
   diaFechamento: 1,
   diaPagamento: 1
 });
@@ -79,6 +85,7 @@ const fetchCarteiras = async () => {
 
 const resetForm = () => {
   form.nome = "";
+  form.aliases = "";
   form.diaFechamento = 1;
   form.diaPagamento = 1;
 };
@@ -91,7 +98,13 @@ const openDialog = () => {
 const submit = async () => {
   saving.value = true;
   try {
-    const carteira = await createCarteira({ carteirasRepository }, { ...form });
+    const carteira = await createCarteira({ carteirasRepository }, {
+      ...form,
+      aliases: form.aliases
+        .split(",")
+        .map((alias) => alias.trim())
+        .filter(Boolean)
+    });
     carteiras.value = [carteira, ...carteiras.value];
     dialogVisible.value = false;
     toast.add({ severity: "success", summary: "Carteira criada", life: 2500 });
@@ -103,4 +116,6 @@ const submit = async () => {
 };
 
 onMounted(fetchCarteiras);
+
+const formatAliases = (row) => (row.aliases?.length ? row.aliases.join(", ") : "-");
 </script>

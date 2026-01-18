@@ -1,0 +1,2 @@
+ALTER TABLE carteiras
+ADD COLUMN IF NOT EXISTS aliases text[] NOT NULL DEFAULT ARRAY[]::text[];

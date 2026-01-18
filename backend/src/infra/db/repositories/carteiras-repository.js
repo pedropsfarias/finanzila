@@ -1,19 +1,19 @@
 import db from "../../../config/db.js";
 
 const carteirasRepository = {
-  create: async ({ nome, diaFechamento, diaPagamento }) => {
+  create: async ({ nome, aliases, diaFechamento, diaPagamento }) => {
     const query = `
-      INSERT INTO carteiras (nome, dia_fechamento, dia_pagamento)
-      VALUES ($1, $2, $3)
-      RETURNING id, nome, dia_fechamento AS "diaFechamento", dia_pagamento AS "diaPagamento", criado_em AS "criadoEm", atualizado_em AS "atualizadoEm";
+      INSERT INTO carteiras (nome, aliases, dia_fechamento, dia_pagamento)
+      VALUES ($1, $2, $3, $4)
+      RETURNING id, nome, aliases, dia_fechamento AS "diaFechamento", dia_pagamento AS "diaPagamento", criado_em AS "criadoEm", atualizado_em AS "atualizadoEm";
     `;
 
-    const result = await db.query(query, [nome, diaFechamento, diaPagamento]);
+    const result = await db.query(query, [nome, aliases, diaFechamento, diaPagamento]);
     return result.rows[0];
   },
   list: async () => {
     const query = `
-      SELECT id, nome, dia_fechamento AS "diaFechamento", dia_pagamento AS "diaPagamento", criado_em AS "criadoEm", atualizado_em AS "atualizadoEm"
+      SELECT id, nome, aliases, dia_fechamento AS "diaFechamento", dia_pagamento AS "diaPagamento", criado_em AS "criadoEm", atualizado_em AS "atualizadoEm"
       FROM carteiras
       ORDER BY id DESC;
     `;
