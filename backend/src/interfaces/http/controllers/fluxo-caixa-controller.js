@@ -7,7 +7,7 @@ import updateFluxoCaixaUseCase from "../../../application/usecases/update-fluxo-
 import listFluxoCaixaUseCase from "../../../application/usecases/list-fluxo-caixa.js";
 import deleteFluxoCaixaUseCase from "../../../application/usecases/delete-fluxo-caixa.js";
 import importFluxoCaixaUseCase from "../../../application/usecases/import-fluxo-caixa.js";
-import parseFluxoCaixaXlsx from "../../../infra/importers/fluxo-caixa-xlsx.js";
+import { parseFluxoCaixaFile } from "../../../infra/importers/fluxo-caixa-importer.js";
 import fluxoCaixaRepository from "../../../infra/db/repositories/fluxo-caixa-repository.js";
 import carteirasRepository from "../../../infra/db/repositories/carteiras-repository.js";
 
@@ -77,7 +77,7 @@ const fluxoCaixaController = {
   importXlsx: async (req, res, next) => {
     let tempPath = null;
     try {
-      const { contentBase64, fileName } = req.body ?? {};
+      const { contentBase64, fileName, carteiraId } = req.body ?? {};
       if (!contentBase64) {
         res.status(400).json({ message: "Arquivo nao informado." });
         return;
@@ -88,10 +88,18 @@ const fluxoCaixaController = {
       const buffer = Buffer.from(rawBase64, "base64");
       tempPath = path.join(os.tmpdir(), `${randomUUID()}-${fileName || "fluxo-caixa.xlsx"}`);
       await fs.writeFile(tempPath, buffer);
-      const registros = parseFluxoCaixaXlsx(tempPath);
+      const { strategy, registros } = parseFluxoCaixaFile({ filePath: tempPath, fileName });
+      if (!strategy) {
+        res.status(400).json({ message: "Formato de arquivo nao suportado." });
+        return;
+      }
+      if (strategy.requiresCarteira && !carteiraId) {
+        res.status(400).json({ message: "Carteira obrigatoria para este formato." });
+        return;
+      }
       const resultado = await importFluxoCaixaUseCase(
         { fluxoCaixaRepository, carteirasRepository },
-        { registros }
+        { registros, carteiraId: carteiraId ? Number(carteiraId) : null }
       );
       res.status(200).json(resultado);
     } catch (error) {

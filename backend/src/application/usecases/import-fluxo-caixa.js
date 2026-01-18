@@ -36,6 +36,14 @@ const parseValor = (value) => {
 const importFluxoCaixaUseCase = async ({ fluxoCaixaRepository, carteirasRepository }, input) => {
   const carteiras = await carteirasRepository.list();
   const carteiraLookup = new Map();
+  const carteiraPreferidaId = Number(input.carteiraId);
+  const carteiraPreferida = Number.isFinite(carteiraPreferidaId)
+    ? carteiras.find((carteira) => carteira.id === carteiraPreferidaId)
+    : null;
+
+  if (input.carteiraId && !carteiraPreferida) {
+    throw new Error("Carteira informada invalida.");
+  }
 
   const registerCarteira = (carteira) => {
     if (!carteira) {
@@ -64,7 +72,7 @@ const importFluxoCaixaUseCase = async ({ fluxoCaixaRepository, carteirasReposito
   let carteirasCriadas = 0;
 
   for (const registro of input.registros ?? []) {
-    const carteiraNome = registro.conta || registro.cartaoCredito || "";
+    const carteiraNome = carteiraPreferida ? carteiraPreferida.nome : (registro.conta || registro.cartaoCredito || "");
     const data = parseDate(registro.data);
     const descricao = String(registro.descricao ?? "").trim();
     const valor = parseValor(registro.valor);
@@ -74,7 +82,7 @@ const importFluxoCaixaUseCase = async ({ fluxoCaixaRepository, carteirasReposito
     }
 
     const carteiraKey = normalize(carteiraNome);
-    let carteira = carteiraLookup.get(carteiraKey);
+    let carteira = carteiraPreferida ?? carteiraLookup.get(carteiraKey);
     if (!carteira) {
       carteira = await carteirasRepository.create({
         nome: carteiraNome.trim(),

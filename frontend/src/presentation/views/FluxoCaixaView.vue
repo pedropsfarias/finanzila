@@ -8,7 +8,7 @@
         </p>
       </div>
       <div :style="{ display: 'flex', gap: '0.5rem' }">
-        <Button label="Importar xlsx" icon="pi pi-upload" size="small" severity="secondary" @click="openImportDialog" />
+        <Button label="Importar arquivo" icon="pi pi-upload" size="small" severity="secondary" @click="openImportDialog" />
         <Button label="Novo lancamento" icon="pi pi-plus" size="small" @click="openDialog" />
       </div>
     </div>
@@ -87,13 +87,23 @@
       header="Importar fluxo de caixa"
       :style="{ width: '100%', maxWidth: '36rem' }"
     >
-      <div :style="{ display: 'grid', gap: '1rem' }">
+        <div :style="{ display: 'grid', gap: '1rem' }">
         <div :style="{ display: 'grid', gap: '0.5rem' }">
-          <span>Arquivo (.xlsx)</span>
-          <input type="file" accept=".xlsx" @change="handleFileChange" />
+          <span>Arquivo (.xlsx ou .csv)</span>
+          <input type="file" accept=".xlsx,.csv" @change="handleFileChange" />
           <small v-if="importFile" :style="{ color: 'var(--text-color-secondary)' }">
             Selecionado: {{ importFile.name }}
           </small>
+        </div>
+        <div v-if="isCsvImport" :style="{ display: 'grid', gap: '0.5rem' }">
+          <span>Carteira do CSV</span>
+          <Dropdown
+            v-model="selectedCarteiraId"
+            :options="carteiras"
+            optionLabel="nome"
+            optionValue="id"
+            placeholder="Selecione a carteira"
+          />
         </div>
         <div v-if="importSummary" :style="{ display: 'grid', gap: '0.35rem' }">
           <strong>Resumo</strong>
@@ -151,6 +161,7 @@ const importDialogVisible = ref(false);
 const importing = ref(false);
 const importFile = ref(null);
 const importSummary = ref(null);
+const selectedCarteiraId = ref(null);
 const form = reactive({
   data: null,
   descricao: "",
@@ -160,6 +171,10 @@ const form = reactive({
 });
 
 const dialogTitle = computed(() => (editingId.value ? "Editar lancamento" : "Novo lancamento"));
+const isCsvImport = computed(() => {
+  const fileName = importFile.value?.name?.toLowerCase();
+  return Boolean(fileName && fileName.endsWith(".csv"));
+});
 
 const fetchFluxos = async () => {
   loading.value = true;
@@ -220,11 +235,14 @@ const openEditDialog = (row) => {
 const openImportDialog = () => {
   importFile.value = null;
   importSummary.value = null;
+  selectedCarteiraId.value = null;
   importDialogVisible.value = true;
 };
 
 const handleFileChange = (event) => {
   importFile.value = event.target.files?.[0] ?? null;
+  importSummary.value = null;
+  selectedCarteiraId.value = null;
 };
 
 const readFileAsBase64 = (file) =>
@@ -333,7 +351,11 @@ const confirmRemove = async (row) => {
 
 const submitImport = async () => {
   if (!importFile.value) {
-    toast.add({ severity: "error", summary: "Selecione um arquivo .xlsx.", life: 2500 });
+    toast.add({ severity: "error", summary: "Selecione um arquivo .xlsx ou .csv.", life: 2500 });
+    return;
+  }
+  if (isCsvImport.value && !selectedCarteiraId.value) {
+    toast.add({ severity: "error", summary: "Selecione a carteira do CSV.", life: 2500 });
     return;
   }
   importing.value = true;
@@ -341,7 +363,8 @@ const submitImport = async () => {
     const contentBase64 = await readFileAsBase64(importFile.value);
     importSummary.value = await importFluxoCaixa({ fluxoCaixaRepository }, {
       fileName: importFile.value.name,
-      contentBase64
+      contentBase64,
+      carteiraId: selectedCarteiraId.value
     });
     await fetchFluxos();
     toast.add({ severity: "success", summary: "Importacao concluida", life: 2500 });

@@ -1,6 +1,6 @@
 import xlsx from "xlsx";
 
-const extractRecords = (rows) => {
+const findHeader = (rows) => {
   const headerKeys = {
     Data: null,
     "Título": null,
@@ -8,22 +8,25 @@ const extractRecords = (rows) => {
     "Cartão de crédito": null,
     Valor: null
   };
-  let headerIndex = null;
   for (let idx = 0; idx < rows.length; idx += 1) {
     const values = rows[idx] ?? [];
     if (values.includes("Data") && values.includes("Título")) {
-      headerIndex = idx;
       values.forEach((value, colIndex) => {
         if (value in headerKeys) {
           headerKeys[value] = colIndex;
         }
       });
-      break;
+      return { headerIndex: idx, headerKeys };
     }
   }
-  if (headerIndex === null) {
+  return null;
+};
+
+const extractRecords = (rows, header) => {
+  if (!header) {
     return [];
   }
+  const { headerIndex, headerKeys } = header;
   const records = [];
   rows.slice(headerIndex + 1).forEach((row, index) => {
     const data = row?.[headerKeys.Data] ?? "";
@@ -47,15 +50,29 @@ const extractRecords = (rows) => {
   return records;
 };
 
-const parseFluxoCaixaXlsx = (filePath) => {
+const parseSheetRows = (filePath) => {
   const workbook = xlsx.readFile(filePath, { cellDates: false });
   const sheetName = workbook.SheetNames?.[0];
   if (!sheetName) {
     return [];
   }
   const sheet = workbook.Sheets[sheetName];
-  const rows = xlsx.utils.sheet_to_json(sheet, { header: 1, defval: "" });
-  return extractRecords(rows);
+  return xlsx.utils.sheet_to_json(sheet, { header: 1, defval: "" });
 };
 
+const isFluxoCaixaXlsx = (filePath) => {
+  try {
+    const rows = parseSheetRows(filePath);
+    return Boolean(findHeader(rows));
+  } catch (error) {
+    return false;
+  }
+};
+
+const parseFluxoCaixaXlsx = (filePath) => {
+  const rows = parseSheetRows(filePath);
+  return extractRecords(rows, findHeader(rows));
+};
+
+export { isFluxoCaixaXlsx };
 export default parseFluxoCaixaXlsx;

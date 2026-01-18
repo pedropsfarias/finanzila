@@ -1,20 +1,36 @@
-import parseFluxoCaixaXlsx from "../importers/fluxo-caixa-xlsx.js";
+import path from "node:path";
+import { parseFluxoCaixaFile } from "../importers/fluxo-caixa-importer.js";
 import importFluxoCaixaUseCase from "../../application/usecases/import-fluxo-caixa.js";
 import fluxoCaixaRepository from "../db/repositories/fluxo-caixa-repository.js";
 import carteirasRepository from "../db/repositories/carteiras-repository.js";
 import db from "../../config/db.js";
 
 const filePath = process.argv[2];
+const carteiraId = process.argv[3] ? Number(process.argv[3]) : null;
 
 if (!filePath) {
-  console.error("Uso: node src/infra/scripts/import-fluxo-caixa.js <caminho-da-planilha>");
+  console.error("Uso: node src/infra/scripts/import-fluxo-caixa.js <caminho-da-planilha> [carteiraId]");
   process.exit(1);
 }
 
-const registros = parseFluxoCaixaXlsx(filePath);
+const { strategy, registros } = parseFluxoCaixaFile({
+  filePath,
+  fileName: path.basename(filePath)
+});
+
+if (!strategy) {
+  console.error("[importacao] formato de arquivo nao suportado.");
+  await db.close();
+  process.exit(1);
+}
+if (strategy.requiresCarteira && !carteiraId) {
+  console.error("[importacao] carteira obrigatoria para este formato.");
+  await db.close();
+  process.exit(1);
+}
 const resultado = await importFluxoCaixaUseCase(
   { fluxoCaixaRepository, carteirasRepository },
-  { registros }
+  { registros, carteiraId }
 );
 
 console.log(`[importacao] registros: ${resultado.totalRegistros}`);
