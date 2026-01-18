@@ -10,7 +10,17 @@ const toDate = (value) => {
     return null;
   }
   if (value instanceof Date) {
-    return Number.isNaN(value.getTime()) ? null : value;
+    if (Number.isNaN(value.getTime())) {
+      return null;
+    }
+    const isUtcMidnight = value.getUTCHours() === 0
+      && value.getUTCMinutes() === 0
+      && value.getUTCSeconds() === 0
+      && value.getUTCMilliseconds() === 0;
+    if (isUtcMidnight) {
+      return new Date(value.getUTCFullYear(), value.getUTCMonth(), value.getUTCDate());
+    }
+    return value;
   }
   if (typeof value === "string") {
     const match = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
@@ -52,14 +62,29 @@ const buildPagamentoDate = (year, monthIndex, diaPagamento) => {
 const buildMesReferencia = (year, monthIndex) =>
   `${year}-${String(monthIndex + 1).padStart(2, "0")}-01`;
 
+const subtractDays = (value, days) => {
+  const date = new Date(value.getTime());
+  date.setDate(date.getDate() - days);
+  return date;
+};
+
+const endOfDay = (value) => {
+  const date = new Date(value.getTime());
+  date.setHours(23, 59, 59, 999);
+  return date;
+};
+
 const getStatementInterval = (monthDate, diaFechamento) => {
   const year = monthDate.getFullYear();
   const monthIndex = monthDate.getMonth();
   const fechamentoAtual = buildDate(year, monthIndex, diaFechamento);
   const fechamentoAnterior = addMonths(fechamentoAtual, -1);
-  const inicio = addMonths(fechamentoAnterior, 0);
-  inicio.setDate(fechamentoAnterior.getDate() + 1);
-  const fim = fechamentoAtual;
+  const inicio = buildDate(
+    fechamentoAnterior.getFullYear(),
+    fechamentoAnterior.getMonth(),
+    fechamentoAnterior.getDate()
+  );
+  const fim = endOfDay(subtractDays(fechamentoAtual, 1));
   return { inicio, fim };
 };
 
@@ -118,16 +143,31 @@ const generateFluxoConsolidadoUseCase = async (
 
   carteiras.forEach((carteira) => {
     const { inicio, fim } = getStatementInterval(baseDate, carteira.diaFechamento);
-    const totalCarteira = fluxos.reduce((total, fluxo) => {
+    const fluxosCarteira = fluxos.filter((fluxo) => {
       if (fluxo.carteiraId !== carteira.id) {
-        return total;
+        return false;
       }
       const dataFluxo = toDate(fluxo.data);
-      if (!dataFluxo || !isBetweenInclusive(dataFluxo, inicio, fim)) {
-        return total;
-      }
-      return total + Number(fluxo.valor || 0);
-    }, 0);
+      return Boolean(dataFluxo && isBetweenInclusive(dataFluxo, inicio, fim));
+    });
+    const totalCarteira = fluxosCarteira.reduce(
+      (total, fluxo) => total + Number(fluxo.valor || 0),
+      0
+    );
+    console.log("[fluxo-consolidado] itens soma", {
+      mesReferencia: mesReferenciaDate,
+      carteiraId: carteira.id,
+      carteiraNome: carteira.nome,
+      inicio: inicio.toISOString(),
+      fim: fim.toISOString(),
+      itens: fluxosCarteira.map((fluxo) => ({
+        id: fluxo.id,
+        data: fluxo.data,
+        dataParseada: toDate(fluxo.data)?.toISOString() ?? null,
+        descricao: fluxo.descricao,
+        valor: fluxo.valor
+      }))
+    });
 
     const pagamentoData = buildPagamentoDate(year, monthIndex, carteira.diaPagamento);
     const despesaCarteira = despesasPorCarteira.get(carteira.id);
