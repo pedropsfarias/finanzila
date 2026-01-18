@@ -17,12 +17,16 @@
       :emptyMessage="'Nenhuma carteira cadastrada.'"
     >
       <Column field="nome" header="Nome" />
-      <Column header="Aliases" :body="formatAliases" />
+      <Column header="Apelidos">
+        <template #body="{ data }">
+          {{ formatAliases(data) }}
+        </template>
+      </Column>
       <Column field="diaFechamento" header="Fechamento" />
       <Column field="diaPagamento" header="Pagamento" />
-      <Column header="Acoes">
+      <Column header="">
         <template #body="{ data }">
-          <div :style="{ display: 'flex', gap: '0.5rem' }">
+          <div :style="{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end', width: '100%' }">
             <Button icon="pi pi-pencil" size="small" text @click="openEditDialog(data)" />
             <Button icon="pi pi-trash" size="small" text severity="danger" @click="confirmRemove(data)" />
           </div>
@@ -109,20 +113,41 @@ const openDialog = () => {
   dialogVisible.value = true;
 };
 
+const parseAliases = (aliases) => {
+  if (!aliases) {
+    return [];
+  }
+  if (Array.isArray(aliases)) {
+    return aliases;
+  }
+  if (typeof aliases === "string") {
+    const trimmed = aliases.trim();
+    if (!trimmed) {
+      return [];
+    }
+    if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
+      const inner = trimmed.slice(1, -1);
+      if (!inner) {
+        return [];
+      }
+      return inner.split(",").map((alias) => alias.trim()).filter(Boolean);
+    }
+    return trimmed.split(",").map((alias) => alias.trim()).filter(Boolean);
+  }
+  return [];
+};
+
 const openEditDialog = (row) => {
   editingId.value = row.id;
   form.nome = row.nome;
-  form.aliases = row.aliases?.length ? row.aliases.join(", ") : "";
+  const aliases = parseAliases(row.aliases);
+  form.aliases = aliases.length ? aliases.join(", ") : "";
   form.diaFechamento = row.diaFechamento;
   form.diaPagamento = row.diaPagamento;
   dialogVisible.value = true;
 };
 
-const normalizeAliases = (aliases) =>
-  aliases
-    .split(",")
-    .map((alias) => alias.trim())
-    .filter(Boolean);
+const normalizeAliases = (aliases) => parseAliases(aliases);
 
 const submit = async () => {
   saving.value = true;
@@ -169,5 +194,8 @@ const confirmRemove = async (row) => {
 
 onMounted(fetchCarteiras);
 
-const formatAliases = (row) => (row.aliases?.length ? row.aliases.join(", ") : "-");
+const formatAliases = (row) => {
+  const aliases = parseAliases(row.aliases);
+  return aliases.length ? aliases.join(", ") : "-";
+};
 </script>

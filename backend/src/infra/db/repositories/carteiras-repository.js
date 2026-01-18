@@ -15,7 +15,7 @@ const carteirasRepository = {
     const query = `
       SELECT id, nome, aliases, dia_fechamento AS "diaFechamento", dia_pagamento AS "diaPagamento", criado_em AS "criadoEm", atualizado_em AS "atualizadoEm"
       FROM carteiras
-      ORDER BY id DESC;
+      ORDER BY nome ASC, dia_fechamento ASC;
     `;
 
     const result = await db.query(query);

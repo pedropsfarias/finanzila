@@ -17,11 +17,15 @@
       :emptyMessage="'Nenhuma despesa cadastrada.'"
     >
       <Column field="dia" header="Dia" />
-      <Column field="descricao" header="Descricao" />
-      <Column field="valorEstimado" header="Valor" />
-      <Column header="Acoes">
+      <Column field="descricao" header="Descrição" />
+      <Column field="valorEstimado" header="Valor">
         <template #body="{ data }">
-          <div :style="{ display: 'flex', gap: '0.5rem' }">
+          {{ formatValor(data?.valorEstimado) }}
+        </template>
+      </Column>
+      <Column header="">
+        <template #body="{ data }">
+          <div :style="{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end', width: '100%' }">
             <Button icon="pi pi-pencil" size="small" text @click="openEditDialog(data)" />
             <Button icon="pi pi-trash" size="small" text severity="danger" @click="confirmRemove(data)" />
           </div>
@@ -36,7 +40,7 @@
           <InputNumber v-model="form.dia" :min="1" :max="31" />
         </div>
         <div :style="{ display: 'grid', gap: '0.5rem' }">
-          <span>Descricao</span>
+          <span>Descrição</span>
           <InputText v-model="form.descricao" placeholder="Academia" />
         </div>
         <div :style="{ display: 'grid', gap: '0.5rem' }">
@@ -108,6 +112,22 @@ const openEditDialog = (row) => {
   form.descricao = row.descricao;
   form.valorEstimado = row.valorEstimado;
   dialogVisible.value = true;
+};
+
+const formatValor = (value) => {
+  if (value === null || value === undefined || value === "") {
+    return "-";
+  }
+  let numericValue = value;
+  if (typeof numericValue === "string") {
+    const cleaned = numericValue.replace(/[R$\s]/g, "");
+    numericValue = cleaned.includes(",") ? cleaned.replace(/\./g, "").replace(",", ".") : cleaned;
+  }
+  const parsed = Number(numericValue);
+  if (Number.isNaN(parsed)) {
+    return "-";
+  }
+  return `R$${parsed.toFixed(2).replace(".", ",")}`;
 };
 
 const submit = async () => {

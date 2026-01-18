@@ -36,9 +36,9 @@
           {{ formatValor(data) }}
         </template>
       </Column>
-      <Column header="Acoes">
+      <Column header="">
         <template #body="{ data }">
-          <div :style="{ display: 'flex', gap: '0.5rem' }">
+          <div :style="{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end', width: '100%' }">
             <Button icon="pi pi-pencil" size="small" text @click="openEditDialog(data)" />
             <Button icon="pi pi-trash" size="small" text severity="danger" @click="confirmRemove(data)" />
           </div>
