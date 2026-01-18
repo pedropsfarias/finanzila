@@ -22,13 +22,14 @@
           label="Sair"
           text
           severity="secondary"
+          size="small"
           @click="handleLogout"
         />
       </template>
     </Toolbar>
     <div :style="{ padding: '0 1rem 1.5rem', display: 'grid', gap: '1rem' }">
       <TabMenu :model="items" :activeIndex="activeIndex" @tab-change="handleTabChange" />
-      <Card :style="{ borderRadius: '20px' }">
+      <Card :style="{ borderRadius: '1.67rem' }">
         <template #content>
           <RouterView />
         </template>

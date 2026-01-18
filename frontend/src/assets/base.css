@@ -1,10 +1,12 @@
 :root {
   color-scheme: light;
+  font-size: 12px;
 }
 
 body {
   margin: 0;
   font-family: "Manrope", "Segoe UI", sans-serif;
+  font-size: 12px;
 }
 
 #app {

@@ -7,7 +7,7 @@
           Cadastre acessos para o financeiro.
         </p>
       </div>
-      <Button label="Novo usuario" icon="pi pi-plus" @click="openDialog" />
+      <Button label="Novo usuario" icon="pi pi-plus" size="small" @click="openDialog" />
     </div>
 
     <DataTable
@@ -21,7 +21,7 @@
       <Column field="criadoEm" header="Criado" />
     </DataTable>
 
-    <Dialog v-model:visible="dialogVisible" modal header="Novo usuario" :style="{ width: '100%', maxWidth: '480px' }">
+    <Dialog v-model:visible="dialogVisible" modal header="Novo usuario" :style="{ width: '100%', maxWidth: '40rem' }">
       <div :style="{ display: 'grid', gap: '1rem' }">
         <div :style="{ display: 'grid', gap: '0.5rem' }">
           <span>Nome</span>
@@ -36,8 +36,8 @@
           <Password v-model="form.senha" :feedback="false" toggleMask />
         </div>
         <div :style="{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }">
-          <Button label="Cancelar" text severity="secondary" @click="dialogVisible = false" />
-          <Button label="Salvar" icon="pi pi-check" :loading="saving" @click="submit" />
+          <Button label="Cancelar" text severity="secondary" size="small" @click="dialogVisible = false" />
+          <Button label="Salvar" icon="pi pi-check" size="small" :loading="saving" @click="submit" />
         </div>
       </div>
     </Dialog>

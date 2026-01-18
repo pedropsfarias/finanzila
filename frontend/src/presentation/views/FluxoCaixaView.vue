@@ -7,7 +7,7 @@
           Registre entradas e saidas por carteira.
         </p>
       </div>
-      <Button label="Novo lancamento" icon="pi pi-plus" @click="openDialog" />
+      <Button label="Novo lancamento" icon="pi pi-plus" size="small" @click="openDialog" />
     </div>
 
     <DataTable
@@ -23,7 +23,7 @@
       <Column field="valor" header="Valor" />
     </DataTable>
 
-    <Dialog v-model:visible="dialogVisible" modal header="Novo lancamento" :style="{ width: '100%', maxWidth: '480px' }">
+    <Dialog v-model:visible="dialogVisible" modal header="Novo lancamento" :style="{ width: '100%', maxWidth: '40rem' }">
       <div :style="{ display: 'grid', gap: '1rem' }">
         <div :style="{ display: 'grid', gap: '0.5rem' }">
           <span>Data</span>
@@ -52,8 +52,8 @@
           <InputNumber v-model="form.valor" mode="currency" currency="BRL" locale="pt-BR" />
         </div>
         <div :style="{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }">
-          <Button label="Cancelar" text severity="secondary" @click="dialogVisible = false" />
-          <Button label="Salvar" icon="pi pi-check" :loading="saving" @click="submit" />
+          <Button label="Cancelar" text severity="secondary" size="small" @click="dialogVisible = false" />
+          <Button label="Salvar" icon="pi pi-check" size="small" :loading="saving" @click="submit" />
         </div>
       </div>
     </Dialog>

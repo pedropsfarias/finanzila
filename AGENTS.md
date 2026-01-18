@@ -37,3 +37,4 @@ All AI agents must use Conventional Commits for every commit.
 - Auth stores `token` and `expiresAt` in `localStorage`; router guards redirect to `/login` when missing/expired.
 - Backend issues JWTs with 1h expiry and returns `expiresAt` in the login response.
 - Backend adds a simple CORS middleware with configurable `CORS_ORIGIN`.
+- PrimeVue buttons are set to `size="small"` across the UI.

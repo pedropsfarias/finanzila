@@ -7,7 +7,7 @@
           Acompanhe despesas previstas por dia.
         </p>
       </div>
-      <Button label="Nova despesa" icon="pi pi-plus" @click="openDialog" />
+      <Button label="Nova despesa" icon="pi pi-plus" size="small" @click="openDialog" />
     </div>
 
     <DataTable
@@ -21,7 +21,7 @@
       <Column field="valorEstimado" header="Valor" />
     </DataTable>
 
-    <Dialog v-model:visible="dialogVisible" modal header="Nova despesa" :style="{ width: '100%', maxWidth: '460px' }">
+    <Dialog v-model:visible="dialogVisible" modal header="Nova despesa" :style="{ width: '100%', maxWidth: '38.33rem' }">
       <div :style="{ display: 'grid', gap: '1rem' }">
         <div :style="{ display: 'grid', gap: '0.5rem' }">
           <span>Dia do mes</span>
@@ -36,8 +36,8 @@
           <InputNumber v-model="form.valorEstimado" mode="currency" currency="BRL" locale="pt-BR" />
         </div>
         <div :style="{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }">
-          <Button label="Cancelar" text severity="secondary" @click="dialogVisible = false" />
-          <Button label="Salvar" icon="pi pi-check" :loading="saving" @click="submit" />
+          <Button label="Cancelar" text severity="secondary" size="small" @click="dialogVisible = false" />
+          <Button label="Salvar" icon="pi pi-check" size="small" :loading="saving" @click="submit" />
         </div>
       </div>
     </Dialog>

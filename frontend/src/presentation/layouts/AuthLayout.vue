@@ -9,7 +9,7 @@
         'radial-gradient(circle at top, var(--primary-50), var(--surface-0) 55%, var(--surface-100))'
     }"
   >
-    <Card :style="{ width: '100%', maxWidth: '420px', borderRadius: '24px' }">
+    <Card :style="{ width: '100%', maxWidth: '35rem', borderRadius: '2rem' }">
       <template #content>
         <div :style="{ display: 'grid', gap: '1.5rem' }">
           <div :style="{ display: 'grid', gap: '0.4rem' }">

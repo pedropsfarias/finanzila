@@ -18,6 +18,7 @@
       type="submit"
       label="Entrar"
       icon="pi pi-lock"
+      size="small"
       :loading="loading"
     />
   </form>
